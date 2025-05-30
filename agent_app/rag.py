@@ -1,0 +1,32 @@
+
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.docstore.document import Document
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.chains import RetrievalQA
+from agent_app.prompts import get_custom_rag_prompt
+from agent_app.config import get_llm
+from langchain.tools import tool
+
+# === Load Docs and Build VectorStore ===
+with open("docs/itac.txt", "r") as f:
+    content = f.read()
+
+docs = [Document(page_content=chunk) for chunk in CharacterTextSplitter(
+    chunk_size=500, chunk_overlap=50).split_text(content)]
+embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+vectorstore = FAISS.from_documents(docs, embedding_model)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
+
+rag_chain = RetrievalQA.from_chain_type(
+    llm=get_llm(),
+    retriever=retriever,
+    chain_type="stuff",
+    chain_type_kwargs={"prompt": get_custom_rag_prompt()}
+)
+
+@tool
+def DocumentQA(question: str) -> str:
+    """Use only for answering questions based on internal file-based documents."""
+    result = rag_chain.invoke({"query": question})
+    return result.get("result", "") if isinstance(result, dict) else result
