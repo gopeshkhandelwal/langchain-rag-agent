@@ -10,6 +10,10 @@ install:
 	@echo "🔧 Installing dependencies..."
 	pip install -r requirements.txt
 
+build-vectorstore:
+	@echo "🔨 Building vector store..."
+	PYTHONPATH=. python3 utils/build_vectorstore.py
+
 run:
 	@echo "🚀 Running agent..."
 	PYTHONPATH=. python3 $(ENTRY)
