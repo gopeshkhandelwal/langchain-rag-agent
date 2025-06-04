@@ -27,6 +27,9 @@ rag_chain = RetrievalQA.from_chain_type(
 
 @tool
 def DocumentQA(question: str) -> str:
-    """Use only for answering questions based on internal file-based documents."""
+    """Use only for answering questions based on internal file-based documents. Do not use for general knowledge or weather queries."""
     result = rag_chain.invoke({"query": question})
-    return result.get("result", "") if isinstance(result, dict) else result
+    answer = result.get("result", "") if isinstance(result, dict) else result
+    answer = answer.strip().replace('"', '')
+    print("🔍 RAG result:", answer)
+    return answer

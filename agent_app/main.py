@@ -12,6 +12,7 @@ agent = initialize_agent(
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
     max_iterations=5,
+    handle_parsing_errors=True,  # ✅ Prevent output format issues
     agent_kwargs={
         "prefix": (
             "You are an AI assistant with access to two tools: DocumentQA and CityWeather.\n"
@@ -26,24 +27,27 @@ agent = initialize_agent(
             "Final Answer: The weather in New York is sunny and 25°C.\n\n"
             "Now begin for the user's input."
         ),
-        "format_instructions": """Use this format:
+        "format_instructions": """
+Use this format:
 
-Question: the user query
-Thought: reason about what to do
-Action: one of [DocumentQA, CityWeather] (optional)
-Action Input: the input to the tool (optional)
-Observation: result of the tool (only if Action was used)
-Final Answer: the response to the user
+Question: user query
+Thought: your reasoning
+Action: one of [DocumentQA, CityWeather]
+Action Input: plain input to the tool
+Observation: result from the tool
+Final Answer: the final user-facing response
 
-Only use plain text in Action and Action Input — no code, no parentheses, no function calls.
-
-If no tool is needed, skip Action and Observation and go directly to Final Answer.
+Only use Action if necessary. DO NOT write tool calls like DocumentQA(question: ...). Just write:
+Action: DocumentQA
+Action Input: Intel Tiber AI Cloud
 """.strip()
     }
 )
 
+# === Prompt Loop ===
 if __name__ == "__main__":
     print("\n🧠 Agentic AI is ready. Type your query or 'quit' to exit.\n")
+
     while True:
         user_input = input("📝 Your Query: ")
         if user_input.strip().lower() in ["quit", "exit"]:
@@ -51,6 +55,6 @@ if __name__ == "__main__":
             break
         try:
             response = agent.invoke(user_input)
-            print("\n✅ Final Answer:", response, "\n")
+            print("\n✅", response, "\n")
         except Exception as e:
             print(f"⚠️ Error processing query: {e}\n")

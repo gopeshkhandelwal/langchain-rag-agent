@@ -5,8 +5,8 @@ def get_custom_rag_prompt():
     return PromptTemplate(
         input_variables=["context", "question"],
         template=""""
-You are a knowledgeable AI assistant. Use the context below to answer the user's question.
-Even if the context is incomplete, attempt a clear and informative response using your understanding.
+If the context is short or ambiguous, do your best to explain the topic based on your knowledge. 
+Do not repeat the question. Make your response informative.
 
 Context:
 {context}
